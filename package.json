@@ -1,0 +1,27 @@
+{
+  "name": "aircdn",
+  "version": "0.0.0",
+  "description": "Locally cache CDN assets to make developing on an airplane (or offline) easier",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erik/aircdn.git"
+  },
+  "author": "Erik Price",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/erik/aircdn/issues"
+  },
+  "bin": {
+    "aircdn": "./index.js"
+  },
+  "homepage": "https://github.com/erik/aircdn#readme",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "http-proxy": "^1.14.0",
+    "request": "^2.72.0"
+  }
+}
