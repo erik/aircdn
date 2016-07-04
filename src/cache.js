@@ -1,7 +1,7 @@
 var fs = require('fs');
+var path = require('path');
 var http = require('http');
-
-var isOnline = require('is-online');
+var jsonfile = require('jsonfile');
 
 var hosts = require('./hosts.js');
 
@@ -9,7 +9,9 @@ var hosts = require('./hosts.js');
 class Cache {
     constructor(cacheDir) {
         this.directory = cacheDir;
-        this.files = [];
+        this.files = new Set();
+        this.meta = {};
+        this.metaFile = path.join(cacheDir, 'meta.json');
 
         console.log("Using cache directory:", cacheDir);
 
@@ -18,41 +20,50 @@ class Cache {
             fs.mkdirSync(cacheDir);
         }
 
+        if (fs.existsSync(this.metaFile)) {
+            console.log('... loading metadata');
+            this.meta = jsonfile.readFileSync(this.metaFile);
+        }
+
         for (let file of fs.readdirSync(cacheDir)) {
             if (!fs.lstatSync(cacheDir + '/' + file).isDirectory()) {
                 console.log('... adding to cache:', file);
-                this.files.push(file);
+                this.files.add(file);
             }
         }
     }
 
-    handleRequest(req, res) {
-        var domain = req.headers.host;
-        var path = req.originalUrl;
+    has(domain, url) {
+        var fname = domain + url.replace('/', '_');
+        return this.files.has(fname);
+    }
 
-        console.log('->', domain, path);
+    get(domain, url, callback) {
+        var fname = domain + url.replace('/', '_');
 
-        isOnline((err, online) => {
-            if (online) {
-                var opts = {
-                    hostname: hosts.dns_cache[domain],
-                    port: req.port,
-                    path: path,
-                    headers: req.headers,
-                    method: req.method
-                };
+        fs.readFile(path.join(this.directory, fname), (err, data) => {
+            if (err) {
+                console.log('Failed reading cached file', err);
+            }
 
-                // TODO: handle https
-                var proxy_req = http.request(opts, (proxy_res) => {
-                    proxy_res.addListener('data', (chunk) => {
-                        res.write(chunk, 'binary');
-                    });
+            callback(err, data, this.meta[fname]);
+        });
+    }
 
-                    proxy_res.addListener('end', () => res.end());
-                    res.writeHead(proxy_res.statusCode, proxy_res.headers);
+    addEntry(domain, url, content, headers) {
+        var fname = domain + url.replace('/', '_');
+        console.log('adding to cache...', fname);
+
+        fs.writeFile(path.join(this.directory, fname), content, (err) => {
+            if (err) {
+                console.log('Failed writing cache file:', err);
+            } else {
+                this.files.add(fname);
+                this.meta[fname] = headers;
+
+                jsonfile.writeFile(this.metaFile, this.meta, (err) => {
+                    err && console.log('Failed to write meta:', err);
                 });
-
-                proxy_req.end();
             }
         });
     }
