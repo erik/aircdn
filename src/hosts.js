@@ -1,5 +1,4 @@
 var dns = require('dns');
-
 var hostile = require('hostile');
 
 const DEFAULT_CDN_DOMAINS = [

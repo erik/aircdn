@@ -1,6 +1,5 @@
 var express = require('express');
 var http = require('http');
-var request = require('request');
 var isOnline = require('is-online');
 
 var hosts = require('./hosts.js');
