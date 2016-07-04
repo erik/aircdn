@@ -26,6 +26,8 @@ class Cache {
         }
 
         for (let file of fs.readdirSync(cacheDir)) {
+            if (file == 'meta.json') continue;
+
             if (!fs.lstatSync(cacheDir + '/' + file).isDirectory()) {
                 console.log('... adding to cache:', file);
                 this.files.add(file);
