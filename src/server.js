@@ -68,5 +68,4 @@ exports.start = function(options) {
     app.listen(options.httpsPort, () => {
         console.log("Routing HTTPS on", options.httpsPort);
     });
-
 };

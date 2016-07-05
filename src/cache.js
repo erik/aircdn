@@ -30,20 +30,24 @@ class Cache {
 
             if (!fs.lstatSync(cacheDir + '/' + file).isDirectory()) {
                 console.log('... adding to cache:', file);
-                this.files.add(file);
+                this.files.add(path.join(cacheDir, file));
             }
         }
     }
 
+    getFileName(domain, url) {
+        var fname = domain + url.replace(/\//g, '_');
+        return path.join(this.directory, fname);
+    }
+
     has(domain, url) {
-        var fname = domain + url.replace('/', '_');
-        return this.files.has(fname);
+        return this.files.has(this.getFileName(domain, url));
     }
 
     get(domain, url, callback) {
-        var fname = domain + url.replace('/', '_');
+        var fname = this.getFileName(domain, url);
 
-        fs.readFile(path.join(this.directory, fname), (err, data) => {
+        fs.readFile(fname, (err, data) => {
             if (err) {
                 console.log('Failed reading cached file', err);
             }
@@ -53,10 +57,10 @@ class Cache {
     }
 
     addEntry(domain, url, content, headers) {
-        var fname = domain + url.replace('/', '_');
+        var fname = this.getFileName(domain, url);
         console.log('adding to cache...', fname);
 
-        fs.writeFile(path.join(this.directory, fname), content, (err) => {
+        fs.writeFile(fname, content, (err) => {
             if (err) {
                 console.log('Failed writing cache file:', err);
             } else {
