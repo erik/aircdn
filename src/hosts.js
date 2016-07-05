@@ -28,9 +28,12 @@ exports.install = function(domains) {
     console.log("Modifying hosts file:");
 
     for (let domain of domains) {
+        // TODO: install these IPs later if we end up being online.
         dns.resolve(domain, (err, addresses) => {
-            console.log('...', domain, '->', addresses[0]);
-            dns_cache[domain] = addresses[0];
+            if (!err) {
+                console.log('...', domain, '->', addresses[0]);
+                dns_cache[domain] = addresses[0];
+            }
         });
 
         hostile.set('127.0.0.1', domain);
